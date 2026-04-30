@@ -1,0 +1,13 @@
+# ===== SERVER =====
+server/node_modules
+server/.env
+server/uploads
+
+# ===== CLIENT =====
+client/node_modules
+client/dist
+client/.env
+
+# ===== SYSTEM =====
+.DS_Store
+Thumbs.db
