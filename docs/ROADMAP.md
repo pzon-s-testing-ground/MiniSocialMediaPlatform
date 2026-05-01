@@ -26,6 +26,12 @@
 
 ## Phase 4: Polish
 - [ ] Search functionality
-- [ ] Advanced user stats
+- [ ] Profile customization
 - [ ] Fixing all CSS bugs and Responsiveness 
 - [ ] Mobile compatibility
+- [ ] Email verification before able to create an account
+- [ ] User can delete their account
+- [ ] Ticket system for reporting users and content
+- [ ] Quote functionality
+- [ ] Thread or post editing
+- [ ] Thread or post deletion
