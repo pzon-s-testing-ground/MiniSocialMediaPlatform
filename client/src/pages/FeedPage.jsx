@@ -1,25 +1,53 @@
 import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchPosts, createPost } from '../features/postSlice';
+import { getPostsApi, createPostApi } from '../api/postApi';
 import PostCard from '../components/PostCard';
+import BBCodeEditor from '../components/BBCodeEditor';
 import Sidebar from '../components/Sidebar';
 import { Link } from 'react-router-dom';
 
 const FeedPage = () => {
-    const dispatch = useDispatch();
-    const { posts, loading } = useSelector((state) => state.posts);
-    const { user } = useSelector((state) => state.auth);
-    const [content, setContent] = useState('');
+    const [posts, setPosts] = useState([]);
+    const [newPostContent, setNewPostContent] = useState('');
+    const [newPostTitle, setNewPostTitle] = useState('');
+    const [newPostCategory, setNewPostCategory] = useState('General');
+    const [loading, setLoading] = useState(true);
+    
+    // Pagination
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [categoryFilter, setCategoryFilter] = useState('All');
 
     useEffect(() => {
-        dispatch(fetchPosts());
-    }, [dispatch]);
+        const fetchPosts = async () => {
+            try {
+                const res = await getPostsApi(page, 10, categoryFilter);
+                setPosts(res.data.posts);
+                setTotalPages(res.data.totalPages);
+                setLoading(false);
+            } catch (err) {
+                console.error(err);
+                setLoading(false);
+            }
+        };
+        fetchPosts();
+    }, [page, categoryFilter]);
 
-    const handleSubmit = (e) => {
+    const handleCreatePost = async (e) => {
         e.preventDefault();
-        if (!content.trim()) return;
-        dispatch(createPost({ content }));
-        setContent('');
+        if (!newPostContent.trim() || !newPostTitle.trim()) return;
+        try {
+            await createPostApi(newPostContent, newPostTitle, newPostCategory);
+            setNewPostContent('');
+            setNewPostTitle('');
+            
+            // Reload page 1
+            setPage(1);
+            const res = await getPostsApi(1, 10, categoryFilter);
+            setPosts(res.data.posts);
+            setTotalPages(res.data.totalPages);
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     return (
@@ -30,18 +58,40 @@ const FeedPage = () => {
 
             <div className="forum-main-layout">
                 <div className="forum-content-area">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--forum-gap-md)', alignItems: 'center' }}>
+                        <div>
+                            <span style={{ fontWeight: 'bold', marginRight: '10px' }}>Category:</span>
+                            <select className="forum-input" style={{ width: 'auto', display: 'inline-block' }} value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}>
+                                <option value="All">All Categories</option>
+                                <option value="General">General</option>
+                                <option value="Technology">Technology</option>
+                                <option value="Off-Topic">Off-Topic</option>
+                            </select>
+                        </div>
+                        <div style={{ display: 'flex', gap: '5px' }}>
+                            <button className="forum-btn forum-btn-sm" disabled={page === 1} onClick={() => setPage(page - 1)}>&lt; Prev</button>
+                            <span style={{ padding: '0 10px', background: 'var(--forum-white)', border: '1px solid var(--forum-border-light)' }}>Page {page} of {totalPages}</span>
+                            <button className="forum-btn forum-btn-sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Next &gt;</button>
+                        </div>
+                    </div>
+
                     <div className="forum-panel">
                         <div className="forum-panel-header">Create New Thread</div>
                         <div className="forum-panel-body">
-                            <form onSubmit={handleSubmit}>
-                                <textarea
-                                    className="forum-textarea"
-                                    placeholder="What's on your mind?"
-                                    value={content}
-                                    onChange={(e) => setContent(e.target.value)}
-                                    rows="3"
-                                    required
-                                ></textarea>
+                            <form onSubmit={handleCreatePost}>
+                                <input 
+                                    className="forum-input" 
+                                    placeholder="Thread Title" 
+                                    value={newPostTitle} 
+                                    onChange={(e) => setNewPostTitle(e.target.value)} 
+                                    required 
+                                />
+                                <select className="forum-input" value={newPostCategory} onChange={(e) => setNewPostCategory(e.target.value)}>
+                                    <option value="General">General</option>
+                                    <option value="Technology">Technology</option>
+                                    <option value="Off-Topic">Off-Topic</option>
+                                </select>
+                                <BBCodeEditor value={newPostContent} onChange={setNewPostContent} />
                                 <div className="text-right mt-sm">
                                     <button type="submit" className="forum-btn forum-btn-primary">Post New Thread</button>
                                 </div>

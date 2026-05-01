@@ -1,17 +1,23 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
+import http from 'http'
 import connectDB from './src/config/db.js'
+import { initSocket } from './src/config/socket.js'
 
 import authRoutes from './src/routes/auth.routes.js'
 import userRoutes from './src/routes/user.routes.js'
 import postRoutes from './src/routes/post.routes.js'
 import commentRoutes from './src/routes/comment.routes.js'
 import notificationRoutes from './src/routes/notification.routes.js'
+// import messageRoutes from './src/routes/message.routes.js' // Will be added later
 import errorHandler from './src/middlewares/errorHandler.js'
 
 const app = express()
+const server = http.createServer(app)
+
 connectDB()
+initSocket(server)
 
 app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
 app.use(express.json())
@@ -25,6 +31,6 @@ app.use('/api/notifications', notificationRoutes)
 
 app.use(errorHandler)
 
-app.listen(process.env.PORT, () => {
+server.listen(process.env.PORT, () => {
     console.log(`Server running on port ${process.env.PORT}`)
 })

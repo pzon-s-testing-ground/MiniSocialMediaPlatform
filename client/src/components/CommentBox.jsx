@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { parseBBCode } from '../utils/bbcodeParser';
 
 const CommentBox = ({ comment }) => {
     return (
@@ -29,9 +30,11 @@ const CommentBox = ({ comment }) => {
                         <span>#{comment._id.substring(0, 4)}</span>
                     </span>
                 </div>
-                <div className="forum-post-body" style={{ flexGrow: 1 }}>
-                    {comment.text || comment.content}
-                </div>
+                <div 
+                    className="forum-post-body" 
+                    style={{ flexGrow: 1 }}
+                    dangerouslySetInnerHTML={{ __html: parseBBCode(comment.text || comment.content) }}
+                />
             </div>
         </div>
     );

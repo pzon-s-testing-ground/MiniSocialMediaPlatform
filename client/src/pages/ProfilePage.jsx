@@ -131,9 +131,14 @@ const ProfilePage = () => {
                                     {uploadingAvatar ? 'Uploading...' : 'Upload Avatar'}
                                 </button>
                             ) : (
-                                <button className="forum-btn forum-btn-sm" onClick={handleFollow} style={{ marginBottom: 'var(--forum-gap-md)' }}>
-                                    {isFollowing ? 'Unfollow' : 'Follow'}
-                                </button>
+                                <div style={{ display: 'flex', gap: '10px', marginBottom: 'var(--forum-gap-md)' }}>
+                                    <button className="forum-btn forum-btn-sm" onClick={handleFollow}>
+                                        {isFollowing ? 'Unfollow' : 'Follow'}
+                                    </button>
+                                    <Link to={`/messages/${profileUser._id}`} className="forum-btn forum-btn-sm" style={{ textDecoration: 'none' }}>
+                                        Send Message
+                                    </Link>
+                                </div>
                             )}
 
                             <table className="forum-stats-table">

@@ -19,6 +19,7 @@ const Navbar = () => {
                 {user ? (
                     <>
                         {' / '}<Link to={`/profile/${user._id || user.id}`} title="Profile">profile</Link> 
+                        {' / '}<Link to="/messages" title="Messages">messages</Link> 
                         {' / '}<Link to="/notifications" title="Notifications">notifications</Link> 
                         {' / '}<a href="#" onClick={handleLogout} title="Logout">logout</a> ]
                     </>

@@ -1,7 +1,8 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getMe } from './features/authSlice';
+import { initSocket, disconnectSocket, getSocket } from './socket';
 import Navbar from './components/Navbar';
 import ForumHeader from './components/ForumHeader';
 import Footer from './components/Footer';
@@ -13,18 +14,36 @@ import FeedPage from './pages/FeedPage';
 import ThreadPage from './pages/ThreadPage';
 import ProfilePage from './pages/ProfilePage';
 import NotificationsPage from './pages/NotificationsPage';
+import InboxPage from './pages/InboxPage';
+import ConversationPage from './pages/ConversationPage';
 
 import './App.css';
 
 function App() {
     const dispatch = useDispatch();
-    const { token } = useSelector((state) => state.auth);
+    const { token, user } = useSelector((state) => state.auth);
 
     useEffect(() => {
-        if (token) {
+        if (token && !user) {
             dispatch(getMe());
         }
-    }, [token, dispatch]);
+    }, [token, user, dispatch]);
+
+    useEffect(() => {
+        if (user) {
+            initSocket(user._id || user.id);
+            const socket = getSocket();
+            socket.on('new_notification', (notif) => {
+                // Here we could dispatch to a Redux store, or just use a toast
+                alert(`New notification from ${notif.sender.username}!`);
+            });
+            return () => {
+                socket.off('new_notification');
+            }
+        } else {
+            disconnectSocket();
+        }
+    }, [user]);
 
     return (
         <Router>
@@ -39,6 +58,8 @@ function App() {
                         <Route path="/thread/:id" element={<ProtectedRoute><ThreadPage /></ProtectedRoute>} />
                         <Route path="/profile/:id" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                         <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+                        <Route path="/messages" element={<ProtectedRoute><InboxPage /></ProtectedRoute>} />
+                        <Route path="/messages/:userId" element={<ProtectedRoute><ConversationPage /></ProtectedRoute>} />
                     </Routes>
                 </div>
                 <Footer />

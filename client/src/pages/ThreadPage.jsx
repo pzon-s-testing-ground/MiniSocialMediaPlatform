@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { getPostByIdApi, likePostApi } from '../api/postApi';
 import { getCommentsApi, createCommentApi } from '../api/commentApi';
 import CommentBox from '../components/CommentBox';
+import BBCodeEditor from '../components/BBCodeEditor';
 import { useSelector } from 'react-redux';
 
 const ThreadPage = () => {
@@ -12,6 +13,11 @@ const ThreadPage = () => {
     const [replyText, setReplyText] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    
+    // Pagination for comments
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    
     const { user } = useSelector(state => state.auth);
 
     useEffect(() => {
@@ -19,10 +25,11 @@ const ThreadPage = () => {
             try {
                 const [postRes, commentsRes] = await Promise.all([
                     getPostByIdApi(id),
-                    getCommentsApi(id)
+                    getCommentsApi(id, page, 20)
                 ]);
                 setPost(postRes.data);
-                setComments(commentsRes.data);
+                setComments(commentsRes.data.comments);
+                setTotalPages(commentsRes.data.totalPages);
                 setLoading(false);
             } catch (err) {
                 setError('Thread not found or error loading.');
@@ -30,16 +37,19 @@ const ThreadPage = () => {
             }
         };
         fetchThread();
-    }, [id]);
+    }, [id, page]);
 
     const handleReply = async (e) => {
         e.preventDefault();
         if (!replyText.trim()) return;
         try {
-            const res = await createCommentApi(id, replyText);
-            // Cập nhật lại list comment (chèn cái mới lên hoặc nạp lại)
-            setComments([res.data, ...comments]);
+            await createCommentApi(id, replyText);
             setReplyText('');
+            
+            // Reload comments
+            const commentsRes = await getCommentsApi(id, page, 20);
+            setComments(commentsRes.data.comments);
+            setTotalPages(commentsRes.data.totalPages);
         } catch (err) {
             alert('Error posting reply');
         }
@@ -68,7 +78,7 @@ const ThreadPage = () => {
 
             <div className="forum-panel">
                 <div className="forum-panel-header">
-                    <span>Thread: {post.content.substring(0, 30)}...</span>
+                    <span>Thread: {post.title || post.content.substring(0, 30) + '...'}</span>
                 </div>
 
                 {/* Original Post */}
@@ -80,21 +90,37 @@ const ThreadPage = () => {
                     </button>
                 </div>
 
+                {/* Pagination (Top) */}
+                {totalPages > 1 && (
+                    <div style={{ padding: 'var(--forum-gap-md)', background: 'var(--forum-row-even)', borderBottom: '1px solid var(--forum-border-light)', display: 'flex', justifyContent: 'flex-end', gap: '5px' }}>
+                        <button className="forum-btn forum-btn-sm" disabled={page === 1} onClick={() => setPage(page - 1)}>&lt; Prev</button>
+                        <span style={{ padding: '0 10px', background: 'var(--forum-white)', border: '1px solid var(--forum-border-light)' }}>Page {page} of {totalPages}</span>
+                        <button className="forum-btn forum-btn-sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Next &gt;</button>
+                    </div>
+                )}
+
                 {/* Replies */}
                 {comments.map(c => (
                     <CommentBox key={c._id} comment={c} />
                 ))}
 
+                {/* Pagination (Bottom) */}
+                {totalPages > 1 && (
+                    <div style={{ padding: 'var(--forum-gap-md)', background: 'var(--forum-row-even)', borderBottom: '1px solid var(--forum-border-light)', display: 'flex', justifyContent: 'flex-end', gap: '5px' }}>
+                        <button className="forum-btn forum-btn-sm" disabled={page === 1} onClick={() => setPage(page - 1)}>&lt; Prev</button>
+                        <span style={{ padding: '0 10px', background: 'var(--forum-white)', border: '1px solid var(--forum-border-light)' }}>Page {page} of {totalPages}</span>
+                        <button className="forum-btn forum-btn-sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Next &gt;</button>
+                    </div>
+                )}
+
                 <div className="forum-panel-body" style={{ background: 'var(--forum-row-even)' }}>
                     <form onSubmit={handleReply}>
-                        <h3 style={{ fontSize: 'var(--forum-font-size)', borderBottom: '1px solid var(--forum-border-light)', paddingBottom: 'var(--forum-gap-sm)' }}>Quick Reply</h3>
-                        <textarea
-                            className="forum-textarea"
-                            value={replyText}
-                            onChange={(e) => setReplyText(e.target.value)}
-                            placeholder="Type your reply here..."
-                            required
-                        ></textarea>
+                        <h3 style={{ fontSize: 'var(--forum-font-size)', borderBottom: '1px solid var(--forum-border-light)', paddingBottom: 'var(--forum-gap-sm)', marginBottom: 'var(--forum-gap-md)' }}>Quick Reply</h3>
+                        <BBCodeEditor 
+                            value={replyText} 
+                            onChange={setReplyText} 
+                            placeholder="Type your reply here... (Use BBCode for formatting)" 
+                        />
                         <div className="text-right mt-sm">
                             <button type="submit" className="forum-btn forum-btn-primary">Post Reply</button>
                         </div>

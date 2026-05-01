@@ -8,12 +8,12 @@
 - [x] Retro Forum UI
 - [x] Avatar upload and cropping
 
-## Phase 2: Enhanced Features
-- [ ] Pagination for threads and comments
-- [ ] Rich Text Editor (BBCode or Markdown support) for posts
-- [ ] Real-time notifications using Socket.io
-- [ ] Private Messaging system
-- [ ] Forum Categories/Sub-forums
+## Phase 2: Enhanced Features (Completed)
+- [x] Pagination for threads and comments
+- [x] Rich Text Editor (BBCode or Markdown support) for posts
+- [x] Real-time notifications using Socket.io
+- [x] Private Messaging system
+- [x] Forum Categories/Sub-forums
 
 ## Phase 3: Administration
 - [ ] Admin panel for moderating content

@@ -2,20 +2,25 @@ import Notification from '../models/Notification.js'
 
 export const getNotifications = async (req, res, next) => {
     try {
-        const notifications = await Notification.find({ recipient: req.user.id })
+        const notifications = await Notification.find({ user: req.user.id })
             .populate('sender', 'username avatar')
+            .populate('post', 'title content')
             .sort({ createdAt: -1 })
-        res.json(notifications)
+            .limit(50);
+        res.json(notifications);
     } catch (err) {
-        next(err)
+        next(err);
     }
 }
 
 export const markAsRead = async (req, res, next) => {
     try {
-        await Notification.updateMany({ recipient: req.user.id, read: false }, { read: true })
-        res.json({ message: 'All marked as read' })
+        await Notification.updateMany(
+            { user: req.user.id, read: false },
+            { $set: { read: true } }
+        );
+        res.json({ message: 'Marked all as read' });
     } catch (err) {
-        next(err)
+        next(err);
     }
 }
