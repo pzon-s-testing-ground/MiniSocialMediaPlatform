@@ -4,7 +4,7 @@ const WarningNotification = ({ notification }) => {
     return (
         <div className={`forum-notification-row ${!notification.read ? 'unread' : ''}`} style={{ borderLeft: '4px solid red', backgroundColor: !notification.read ? '#ffebeb' : 'var(--forum-row-odd)' }}>
             <div className="notif-icon">
-                ⚠️
+                [/WARNING]
             </div>
             <div className="notif-content">
                 <strong><span style={{ color: 'red' }}>ADMIN WARNING</span></strong> from <Link to={`/profile/${notification.sender._id}`}>{notification.sender.username}</Link>:

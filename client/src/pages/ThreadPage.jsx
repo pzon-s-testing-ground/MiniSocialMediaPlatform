@@ -13,11 +13,11 @@ const ThreadPage = () => {
     const [replyText, setReplyText] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    
+
     // Pagination for comments
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    
+
     const { user } = useSelector(state => state.auth);
 
     useEffect(() => {
@@ -45,7 +45,7 @@ const ThreadPage = () => {
         try {
             await createCommentApi(id, replyText);
             setReplyText('');
-            
+
             // Reload comments
             const commentsRes = await getCommentsApi(id, page, 20);
             setComments(commentsRes.data.comments);
@@ -118,8 +118,8 @@ const ThreadPage = () => {
             <div className="forum-panel">
                 <div className="forum-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span>
-                        {post.isPinned && '📌 '}
-                        {post.isLocked && '🔒 '}
+                        {post.isPinned && '[pinned] '}
+                        {post.isLocked && '[locked] '}
                         Thread: {post.title || post.content.substring(0, 30) + '...'}
                     </span>
                     {(user?.role === 'Admin' || user?.role === 'Moderator') && (
@@ -132,8 +132,8 @@ const ThreadPage = () => {
                 </div>
 
                 {/* Original Post */}
-                <CommentBox comment={{...post, text: post.content}} onDelete={handleDeletePost} />
-                
+                <CommentBox comment={{ ...post, text: post.content }} onDelete={handleDeletePost} />
+
                 <div style={{ background: 'var(--forum-white)', padding: 'var(--forum-gap-md)', borderBottom: '1px solid var(--forum-border-light)', display: 'flex', justifyContent: 'flex-end' }}>
                     <button className={`forum-like-btn ${isLiked ? 'liked' : ''}`} onClick={handleLike}>
                         {isLiked ? 'Unlike' : 'Like'} ({post.likes?.length || 0})
@@ -165,16 +165,16 @@ const ThreadPage = () => {
 
                 {post.isLocked ? (
                     <div className="forum-panel-body" style={{ background: 'var(--forum-row-even)', textAlign: 'center', padding: 'var(--forum-gap-lg)' }}>
-                        <span style={{ fontStyle: 'italic', color: 'gray' }}>🔒 This thread has been locked. You cannot reply.</span>
+                        <span style={{ fontStyle: 'italic', color: 'gray' }}>This thread has been locked. You cannot reply.</span>
                     </div>
                 ) : (
                     <div className="forum-panel-body" style={{ background: 'var(--forum-row-even)' }}>
                         <form onSubmit={handleReply}>
                             <h3 style={{ fontSize: 'var(--forum-font-size)', borderBottom: '1px solid var(--forum-border-light)', paddingBottom: 'var(--forum-gap-sm)', marginBottom: 'var(--forum-gap-md)' }}>Quick Reply</h3>
-                            <BBCodeEditor 
-                                value={replyText} 
-                                onChange={setReplyText} 
-                                placeholder="Type your reply here... (Use BBCode for formatting)" 
+                            <BBCodeEditor
+                                value={replyText}
+                                onChange={setReplyText}
+                                placeholder="Type your reply here... (Use BBCode for formatting)"
                             />
                             <div className="text-right mt-sm">
                                 <button type="submit" className="forum-btn forum-btn-primary">Post Reply</button>

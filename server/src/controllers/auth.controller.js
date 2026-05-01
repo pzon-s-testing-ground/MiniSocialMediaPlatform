@@ -48,11 +48,15 @@ export const login = async (req, res, next) => {
         const isMatch = await bcrypt.compare(password, user.password)
         if (!isMatch) return res.status(400).json({ message: 'Sai mật khẩu' })
 
+        // Track last login
+        user.lastLogin = new Date()
+        await user.save()
+
         const token = generateToken(user)
 
         res.json({
             token,
-            user: { id: user._id, username: user.username, email: user.email, avatar: user.avatar }
+            user: { id: user._id, username: user.username, email: user.email, avatar: user.avatar, role: user.role, isVerified: user.isVerified }
         })
     } catch (err) {
         next(err)

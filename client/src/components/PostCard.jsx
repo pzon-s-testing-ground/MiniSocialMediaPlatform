@@ -4,7 +4,7 @@ const PostCard = ({ post }) => {
     return (
         <div className="forum-thread-row">
             <div className="thread-icon">
-                {post.isPinned ? '📌' : post.isLocked ? '🔒' : '📄'}
+                {post.isPinned ? '[PINNED]' : post.isLocked ? '[LOCKED]' : '[THREAD]'}
             </div>
             <div className="thread-title">
                 {post.isDeleted ? (

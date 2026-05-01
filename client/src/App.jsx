@@ -35,11 +35,14 @@ function App() {
             initSocket(user._id || user.id);
             const socket = getSocket();
             socket.on('new_notification', (notif) => {
-                // Here we could dispatch to a Redux store, or just use a toast
                 alert(`New notification from ${notif.sender.username}!`);
+            });
+            socket.on('system_announcement', (data) => {
+                alert(`📢 System Announcement from ${data.sender}:\n\n${data.message}`);
             });
             return () => {
                 socket.off('new_notification');
+                socket.off('system_announcement');
             }
         } else {
             disconnectSocket();
