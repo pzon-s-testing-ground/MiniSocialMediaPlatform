@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getNotificationsApi, markNotificationsReadApi } from '../api/notificationApi';
 import { Link } from 'react-router-dom';
+import WarningNotification from '../components/WarningNotification';
 
 const NotificationsPage = () => {
     const [notifications, setNotifications] = useState([]);
@@ -41,34 +42,69 @@ const NotificationsPage = () => {
                 <div className="forum-panel-header">
                     <span>Notifications</span>
                 </div>
-                
+
                 <div style={{ padding: 'var(--forum-gap-sm) var(--forum-gap-lg)', background: 'var(--forum-row-even)', borderBottom: '1px solid var(--forum-border-light)', display: 'flex', justifyContent: 'flex-end' }}>
                     <button className="forum-btn forum-btn-sm" onClick={markAllRead}>Mark All Read</button>
                 </div>
+
 
                 <div>
                     {notifications.length === 0 ? (
                         <div style={{ padding: 'var(--forum-gap-lg)', textAlign: 'center' }}>You have no new notifications.</div>
                     ) : (
-                        notifications.map(notif => (
-                            <div key={notif._id} className={`forum-notification-row ${!notif.read ? 'unread' : ''}`}>
-                                <div className="notif-icon">
-                                    {!notif.read ? '🔔' : '🔕'}
+                        notifications.map(notif => {
+                            if (notif.type === 'warning') {
+                                return <WarningNotification key={notif._id} notification={notif} />;
+                            }
+
+                            const typeLabel = {
+                                like: '[LIKE]',
+                                reply: '[REPLY]',
+                                follow: '[FOLLOW]',
+                            }[notif.type] || '[NOTIF]';
+
+                            const typeColor = {
+                                like: '#cc0000',
+                                reply: '#006600',
+                                follow: '#000099',
+                            }[notif.type] || 'gray';
+
+                            const actionText = {
+                                like: 'liked your post.',
+                                reply: 'replied to your thread.',
+                                follow: 'started following you.',
+                            }[notif.type];
+
+                            const threadTitle = notif.post?.title || notif.post?.content?.substring(0, 30) || null;
+
+                            return (
+                                <div key={notif._id} style={{
+                                    padding: '8px var(--forum-gap-lg)',
+                                    borderBottom: '1px solid var(--forum-border-light)',
+                                    background: !notif.read ? 'var(--forum-row-even)' : 'var(--forum-white)',
+                                    display: 'flex', alignItems: 'flex-start', gap: '10px'
+                                }}>
+                                    <div style={{ fontFamily: 'monospace', fontWeight: 'bold', color: typeColor, whiteSpace: 'nowrap', minWidth: '70px', fontSize: '11px', paddingTop: '2px' }}>
+                                        {!notif.read && '* '}{typeLabel}
+                                    </div>
+                                    <div style={{ flexGrow: 1, fontSize: '12px' }}>
+                                        <Link to={`/profile/${notif.sender._id}`} style={{ fontWeight: 'bold' }}>{notif.sender.username}</Link>
+                                        {' '}{actionText}
+                                        {notif.post && (
+                                            <>
+                                                {' - '}
+                                                <Link to={`/thread/${notif.post._id}`}>
+                                                    {threadTitle ? `"${threadTitle}..."` : '[View Thread]'}
+                                                </Link>
+                                            </>
+                                        )}
+                                    </div>
+                                    <div style={{ fontSize: '10px', color: 'gray', whiteSpace: 'nowrap' }}>
+                                        {new Date(notif.createdAt).toLocaleString()}
+                                    </div>
                                 </div>
-                                <div className="notif-content">
-                                    <Link to={`/profile/${notif.sender._id}`}>{notif.sender.username}</Link>
-                                    {' '}
-                                    {notif.type === 'like' && 'liked your post.'}
-                                    {notif.type === 'reply' && 'replied to your thread.'}
-                                    {notif.type === 'follow' && 'started following you.'}
-                                    {' '}
-                                    {notif.post && <Link to={`/thread/${notif.post}`}>View Thread</Link>}
-                                </div>
-                                <div className="notif-time">
-                                    {new Date(notif.createdAt).toLocaleString()}
-                                </div>
-                            </div>
-                        ))
+                            );
+                        })
                     )}
                 </div>
             </div>

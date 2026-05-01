@@ -16,6 +16,7 @@ import ProfilePage from './pages/ProfilePage';
 import NotificationsPage from './pages/NotificationsPage';
 import InboxPage from './pages/InboxPage';
 import ConversationPage from './pages/ConversationPage';
+import AdminPage from './pages/AdminPage';
 
 import './App.css';
 
@@ -34,11 +35,14 @@ function App() {
             initSocket(user._id || user.id);
             const socket = getSocket();
             socket.on('new_notification', (notif) => {
-                // Here we could dispatch to a Redux store, or just use a toast
                 alert(`New notification from ${notif.sender.username}!`);
+            });
+            socket.on('system_announcement', (data) => {
+                alert(`📢 System Announcement from ${data.sender}:\n\n${data.message}`);
             });
             return () => {
                 socket.off('new_notification');
+                socket.off('system_announcement');
             }
         } else {
             disconnectSocket();
@@ -60,6 +64,7 @@ function App() {
                         <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
                         <Route path="/messages" element={<ProtectedRoute><InboxPage /></ProtectedRoute>} />
                         <Route path="/messages/:userId" element={<ProtectedRoute><ConversationPage /></ProtectedRoute>} />
+                        <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
                     </Routes>
                 </div>
                 <Footer />

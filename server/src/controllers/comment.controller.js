@@ -62,8 +62,18 @@ export const createComment = async (req, res, next) => {
 
 export const deleteComment = async (req, res, next) => {
     try {
-        await Comment.findByIdAndDelete(req.params.id)
-        res.json({ message: 'Deleted' })
+        const comment = await Comment.findById(req.params.id)
+        if (!comment) return res.status(404).json({ message: 'Comment not found' })
+
+        if (comment.author.toString() !== req.user.id && req.user.role !== 'Admin' && req.user.role !== 'Moderator') {
+            return res.status(403).json({ message: 'Unauthorized' })
+        }
+
+        comment.isDeleted = true;
+        comment.deletedBy = (req.user.role === 'Admin' || req.user.role === 'Moderator') ? 'admin' : 'author';
+        await comment.save();
+
+        res.json({ message: 'Comment deleted' })
     } catch (err) {
         next(err)
     }

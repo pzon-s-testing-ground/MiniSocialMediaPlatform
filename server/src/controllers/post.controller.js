@@ -1,5 +1,7 @@
 import Post from '../models/Post.js'
 import Notification from '../models/Notification.js'
+import SystemSetting from '../models/SystemSetting.js'
+import User from '../models/User.js'
 import { getIo, getSocketId } from '../config/socket.js'
 
 export const getPosts = async (req, res, next) => {
@@ -13,9 +15,23 @@ export const getPosts = async (req, res, next) => {
             query.category = req.query.category;
         }
 
+        // Shadowban filtering: hide shadowbanned users' posts unless admin or the author
+        const isMod = req.user.role === 'Admin' || req.user.role === 'Moderator';
+        if (!isMod) {
+            const shadowbannedUsers = await User.find({ isShadowbanned: true }).select('_id');
+            const shadowIds = shadowbannedUsers.map(u => u._id);
+            // Allow the user to see their own posts even if shadowbanned
+            if (shadowIds.length > 0) {
+                query.$or = [
+                    { author: { $nin: shadowIds } },
+                    { author: req.user._id }
+                ];
+            }
+        }
+
         const posts = await Post.find(query)
-            .populate('author', 'username avatar')
-            .sort({ createdAt: -1 })
+            .populate('author', 'username avatar isVerified')
+            .sort({ isPinned: -1, createdAt: -1 })
             .skip(skip)
             .limit(limit);
             
@@ -53,12 +69,24 @@ export const getPostsByUser = async (req, res, next) => {
 
 export const createPost = async (req, res, next) => {
     try {
+        // Keyword filtering
+        const bannedWordsSetting = await SystemSetting.findOne({ key: 'banned_words' });
+        if (bannedWordsSetting && bannedWordsSetting.value) {
+            const bannedWords = bannedWordsSetting.value.split(',').map(w => w.trim().toLowerCase()).filter(Boolean);
+            const contentLower = (req.body.content || '').toLowerCase();
+            const titleLower = (req.body.title || '').toLowerCase();
+            const found = bannedWords.find(w => contentLower.includes(w) || titleLower.includes(w));
+            if (found) {
+                return res.status(400).json({ message: `Your post contains a banned word: "${found}"` });
+            }
+        }
+
         const post = await Post.create({
             title: req.body.title || 'Untitled',
             category: req.body.category || 'General',
             content: req.body.content,
             image: req.file ? `/uploads/${req.file.filename}` : '',
-            author: req.user.id,
+            author: req.user._id,
         })
         res.status(201).json(post)
     } catch (err) {
@@ -68,8 +96,44 @@ export const createPost = async (req, res, next) => {
 
 export const deletePost = async (req, res, next) => {
     try {
-        await Post.findByIdAndDelete(req.params.id)
-        res.json({ message: 'Deleted' })
+        const post = await Post.findById(req.params.id)
+        if (!post) return res.status(404).json({ message: 'Post not found' })
+
+        if (post.author.toString() !== req.user.id && req.user.role !== 'Admin' && req.user.role !== 'Moderator') {
+            return res.status(403).json({ message: 'Unauthorized' })
+        }
+
+        post.isDeleted = true;
+        post.deletedBy = (req.user.role === 'Admin' || req.user.role === 'Moderator') ? 'admin' : 'author';
+        await post.save();
+
+        res.json({ message: 'Post deleted' })
+    } catch (err) {
+        next(err)
+    }
+}
+
+export const lockPost = async (req, res, next) => {
+    try {
+        const post = await Post.findById(req.params.id)
+        if (!post) return res.status(404).json({ message: 'Post not found' })
+        
+        post.isLocked = !post.isLocked;
+        await post.save();
+        res.json(post);
+    } catch (err) {
+        next(err)
+    }
+}
+
+export const pinPost = async (req, res, next) => {
+    try {
+        const post = await Post.findById(req.params.id)
+        if (!post) return res.status(404).json({ message: 'Post not found' })
+        
+        post.isPinned = !post.isPinned;
+        await post.save();
+        res.json(post);
     } catch (err) {
         next(err)
     }
