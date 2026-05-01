@@ -8,6 +8,10 @@ const userSchema = new mongoose.Schema({
     bio:      { type: String, default: '' },
     followers:  [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     following:  [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    role:       { type: String, enum: ['Admin', 'Moderator', 'Member'], default: 'Member' },
+    isBanned:   { type: Boolean, default: false },
+    banReason:  { type: String, default: '' },
+    warnings:   [{ reason: String, date: { type: Date, default: Date.now } }]
 }, { timestamps: true })
 
 export default mongoose.model('User', userSchema)

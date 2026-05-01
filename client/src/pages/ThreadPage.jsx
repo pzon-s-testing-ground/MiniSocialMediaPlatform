@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getPostByIdApi, likePostApi } from '../api/postApi';
-import { getCommentsApi, createCommentApi } from '../api/commentApi';
+import { getPostByIdApi, likePostApi, lockPostApi, pinPostApi, deletePostApi } from '../api/postApi';
+import { getCommentsApi, createCommentApi, deleteCommentApi } from '../api/commentApi';
 import CommentBox from '../components/CommentBox';
 import BBCodeEditor from '../components/BBCodeEditor';
 import { useSelector } from 'react-redux';
@@ -64,6 +64,45 @@ const ThreadPage = () => {
         }
     };
 
+    const handleDeletePost = async () => {
+        if (!window.confirm('Delete this thread?')) return;
+        try {
+            await deletePostApi(id);
+            setPost({ ...post, isDeleted: true, deletedBy: (user.role === 'Admin' || user.role === 'Moderator') ? 'admin' : 'author' });
+        } catch (err) {
+            alert('Error deleting post');
+        }
+    };
+
+    const handleLockPost = async () => {
+        try {
+            const res = await lockPostApi(id);
+            setPost({ ...post, isLocked: res.data.isLocked });
+        } catch (err) {
+            alert('Error locking post');
+        }
+    };
+
+    const handlePinPost = async () => {
+        try {
+            const res = await pinPostApi(id);
+            setPost({ ...post, isPinned: res.data.isPinned });
+        } catch (err) {
+            alert('Error pinning post');
+        }
+    };
+
+    const handleDeleteComment = async (commentId) => {
+        if (!window.confirm('Delete this comment?')) return;
+        try {
+            await deleteCommentApi(commentId);
+            const commentsRes = await getCommentsApi(id, page, 20);
+            setComments(commentsRes.data.comments);
+        } catch (err) {
+            alert('Error deleting comment');
+        }
+    };
+
     if (loading) return <div className="forum-loading">Loading thread...</div>;
     if (error) return <div className="forum-alert forum-alert-error">{error}</div>;
     if (!post) return null;
@@ -77,12 +116,23 @@ const ThreadPage = () => {
             </div>
 
             <div className="forum-panel">
-                <div className="forum-panel-header">
-                    <span>Thread: {post.title || post.content.substring(0, 30) + '...'}</span>
+                <div className="forum-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>
+                        {post.isPinned && '📌 '}
+                        {post.isLocked && '🔒 '}
+                        Thread: {post.title || post.content.substring(0, 30) + '...'}
+                    </span>
+                    {(user?.role === 'Admin' || user?.role === 'Moderator') && (
+                        <div style={{ display: 'flex', gap: '5px' }}>
+                            <button className="forum-btn forum-btn-sm" onClick={handlePinPost}>{post.isPinned ? 'Unpin' : 'Pin'}</button>
+                            <button className="forum-btn forum-btn-sm" onClick={handleLockPost}>{post.isLocked ? 'Unlock' : 'Lock'}</button>
+                            {!post.isDeleted && <button className="forum-btn forum-btn-sm" style={{ color: 'red' }} onClick={handleDeletePost}>Delete</button>}
+                        </div>
+                    )}
                 </div>
 
                 {/* Original Post */}
-                <CommentBox comment={{...post, text: post.content}} />
+                <CommentBox comment={{...post, text: post.content}} onDelete={handleDeletePost} />
                 
                 <div style={{ background: 'var(--forum-white)', padding: 'var(--forum-gap-md)', borderBottom: '1px solid var(--forum-border-light)', display: 'flex', justifyContent: 'flex-end' }}>
                     <button className={`forum-like-btn ${isLiked ? 'liked' : ''}`} onClick={handleLike}>
@@ -101,7 +151,7 @@ const ThreadPage = () => {
 
                 {/* Replies */}
                 {comments.map(c => (
-                    <CommentBox key={c._id} comment={c} />
+                    <CommentBox key={c._id} comment={c} onDelete={handleDeleteComment} />
                 ))}
 
                 {/* Pagination (Bottom) */}
@@ -113,19 +163,25 @@ const ThreadPage = () => {
                     </div>
                 )}
 
-                <div className="forum-panel-body" style={{ background: 'var(--forum-row-even)' }}>
-                    <form onSubmit={handleReply}>
-                        <h3 style={{ fontSize: 'var(--forum-font-size)', borderBottom: '1px solid var(--forum-border-light)', paddingBottom: 'var(--forum-gap-sm)', marginBottom: 'var(--forum-gap-md)' }}>Quick Reply</h3>
-                        <BBCodeEditor 
-                            value={replyText} 
-                            onChange={setReplyText} 
-                            placeholder="Type your reply here... (Use BBCode for formatting)" 
-                        />
-                        <div className="text-right mt-sm">
-                            <button type="submit" className="forum-btn forum-btn-primary">Post Reply</button>
-                        </div>
-                    </form>
-                </div>
+                {post.isLocked ? (
+                    <div className="forum-panel-body" style={{ background: 'var(--forum-row-even)', textAlign: 'center', padding: 'var(--forum-gap-lg)' }}>
+                        <span style={{ fontStyle: 'italic', color: 'gray' }}>🔒 This thread has been locked. You cannot reply.</span>
+                    </div>
+                ) : (
+                    <div className="forum-panel-body" style={{ background: 'var(--forum-row-even)' }}>
+                        <form onSubmit={handleReply}>
+                            <h3 style={{ fontSize: 'var(--forum-font-size)', borderBottom: '1px solid var(--forum-border-light)', paddingBottom: 'var(--forum-gap-sm)', marginBottom: 'var(--forum-gap-md)' }}>Quick Reply</h3>
+                            <BBCodeEditor 
+                                value={replyText} 
+                                onChange={setReplyText} 
+                                placeholder="Type your reply here... (Use BBCode for formatting)" 
+                            />
+                            <div className="text-right mt-sm">
+                                <button type="submit" className="forum-btn forum-btn-primary">Post Reply</button>
+                            </div>
+                        </form>
+                    </div>
+                )}
             </div>
         </div>
     );

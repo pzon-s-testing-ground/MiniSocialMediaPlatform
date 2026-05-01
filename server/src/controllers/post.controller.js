@@ -68,8 +68,44 @@ export const createPost = async (req, res, next) => {
 
 export const deletePost = async (req, res, next) => {
     try {
-        await Post.findByIdAndDelete(req.params.id)
-        res.json({ message: 'Deleted' })
+        const post = await Post.findById(req.params.id)
+        if (!post) return res.status(404).json({ message: 'Post not found' })
+
+        if (post.author.toString() !== req.user.id && req.user.role !== 'Admin' && req.user.role !== 'Moderator') {
+            return res.status(403).json({ message: 'Unauthorized' })
+        }
+
+        post.isDeleted = true;
+        post.deletedBy = (req.user.role === 'Admin' || req.user.role === 'Moderator') ? 'admin' : 'author';
+        await post.save();
+
+        res.json({ message: 'Post deleted' })
+    } catch (err) {
+        next(err)
+    }
+}
+
+export const lockPost = async (req, res, next) => {
+    try {
+        const post = await Post.findById(req.params.id)
+        if (!post) return res.status(404).json({ message: 'Post not found' })
+        
+        post.isLocked = !post.isLocked;
+        await post.save();
+        res.json(post);
+    } catch (err) {
+        next(err)
+    }
+}
+
+export const pinPost = async (req, res, next) => {
+    try {
+        const post = await Post.findById(req.params.id)
+        if (!post) return res.status(404).json({ message: 'Post not found' })
+        
+        post.isPinned = !post.isPinned;
+        await post.save();
+        res.json(post);
     } catch (err) {
         next(err)
     }

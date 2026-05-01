@@ -1,7 +1,11 @@
 import { Link } from 'react-router-dom';
 import { parseBBCode } from '../utils/bbcodeParser';
+import { useSelector } from 'react-redux';
 
-const CommentBox = ({ comment }) => {
+const CommentBox = ({ comment, onDelete }) => {
+    const { user } = useSelector(state => state.auth);
+    const isMod = user && (user.role === 'Admin' || user.role === 'Moderator');
+    
     return (
         <div className="forum-post-box">
             <div className="forum-post-sidebar">
@@ -25,16 +29,25 @@ const CommentBox = ({ comment }) => {
                 <div className="forum-post-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Posted: {new Date(comment.createdAt).toLocaleString()}</span>
                     <span style={{ display: 'flex', gap: 'var(--forum-gap-lg)', alignItems: 'center' }}>
+                        {isMod && !comment.isDeleted && (
+                            <a href="#" onClick={(e) => { e.preventDefault(); onDelete(comment._id); }} title="Delete" style={{ textDecoration: 'none', color: 'red', fontWeight: 'bold' }}>[Delete]</a>
+                        )}
                         <a href="#" title="Quote" style={{ textDecoration: 'none', filter: 'grayscale(100%)', opacity: 0.7 }}>💬</a>
                         <a href="#" title="Report" style={{ textDecoration: 'none', filter: 'grayscale(100%)', opacity: 0.7 }}>🚩</a>
                         <span>#{comment._id.substring(0, 4)}</span>
                     </span>
                 </div>
-                <div 
-                    className="forum-post-body" 
-                    style={{ flexGrow: 1 }}
-                    dangerouslySetInnerHTML={{ __html: parseBBCode(comment.text || comment.content) }}
-                />
+                {comment.isDeleted ? (
+                    <div className="forum-post-body" style={{ flexGrow: 1, fontStyle: 'italic', color: 'gray', padding: 'var(--forum-gap-md)' }}>
+                        [This message was deleted by {comment.deletedBy}]
+                    </div>
+                ) : (
+                    <div 
+                        className="forum-post-body" 
+                        style={{ flexGrow: 1 }}
+                        dangerouslySetInnerHTML={{ __html: parseBBCode(comment.text || comment.content) }}
+                    />
+                )}
             </div>
         </div>
     );

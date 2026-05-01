@@ -10,7 +10,8 @@ import userRoutes from './src/routes/user.routes.js'
 import postRoutes from './src/routes/post.routes.js'
 import commentRoutes from './src/routes/comment.routes.js'
 import notificationRoutes from './src/routes/notification.routes.js'
-// import messageRoutes from './src/routes/message.routes.js' // Will be added later
+import messageRoutes from './src/routes/message.routes.js'
+import adminRoutes from './src/routes/admin.routes.js'
 import errorHandler from './src/middlewares/errorHandler.js'
 
 const app = express()
@@ -28,6 +29,8 @@ app.use('/api/users', userRoutes)
 app.use('/api/posts', postRoutes)
 app.use('/api/comments', commentRoutes)
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/messages', messageRoutes)
+app.use('/api/admin', adminRoutes)
 
 app.use(errorHandler)
 

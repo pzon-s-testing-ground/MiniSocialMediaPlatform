@@ -18,6 +18,7 @@ const Navbar = () => {
                 [ <Link to="/" title="Home">home</Link> 
                 {user ? (
                     <>
+                        { (user.role === 'Admin' || user.role === 'Moderator') && <>{' / '}<Link to="/admin" title="Admin Panel" style={{ color: 'red' }}>admin panel</Link></> }
                         {' / '}<Link to={`/profile/${user._id || user.id}`} title="Profile">profile</Link> 
                         {' / '}<Link to="/messages" title="Messages">messages</Link> 
                         {' / '}<Link to="/notifications" title="Notifications">notifications</Link> 
