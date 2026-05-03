@@ -13,6 +13,7 @@ import notificationRoutes from './src/routes/notification.routes.js'
 import messageRoutes from './src/routes/message.routes.js'
 import adminRoutes from './src/routes/admin.routes.js'
 import userActionsRoutes from './src/routes/user.actions.routes.js'
+import searchRoutes from './src/routes/search.routes.js'
 import errorHandler from './src/middlewares/errorHandler.js'
 
 const app = express()
@@ -33,6 +34,7 @@ app.use('/api/notifications', notificationRoutes)
 app.use('/api/messages', messageRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api', userActionsRoutes)
+app.use('/api/search', searchRoutes)
 
 app.use(errorHandler)
 

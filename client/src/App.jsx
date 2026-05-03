@@ -17,6 +17,7 @@ import NotificationsPage from './pages/NotificationsPage';
 import InboxPage from './pages/InboxPage';
 import ConversationPage from './pages/ConversationPage';
 import AdminPage from './pages/AdminPage';
+import SearchPage from './pages/SearchPage';
 
 import './App.css';
 
@@ -65,6 +66,7 @@ function App() {
                         <Route path="/messages" element={<ProtectedRoute><InboxPage /></ProtectedRoute>} />
                         <Route path="/messages/:userId" element={<ProtectedRoute><ConversationPage /></ProtectedRoute>} />
                         <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+                        <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
                     </Routes>
                 </div>
                 <Footer />

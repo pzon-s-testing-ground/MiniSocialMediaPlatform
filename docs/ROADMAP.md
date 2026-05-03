@@ -24,16 +24,25 @@
 - [x] Warn users
 - [x] Author's post can be deleted by admin, or the author themself, but if admin deletes it, it should be shown as "Deleted by admin" and author should not see the post after deletion.
 
-## Phase 4: Polish
-- [ ] Search functionality
+## Phase 4: Polish (Completed)
+- [x] Search functionality
+- [x] Fixing all CSS bugs and Responsiveness 
+- [x] Mobile compatibility
+
+## Phase 5: Profile Management
 - [ ] Profile customization
-- [ ] Fixing all CSS bugs and Responsiveness 
-- [ ] Mobile compatibility
 - [ ] Email verification before able to create an account
 - [ ] User can delete their account
+
+## Phase 6: Advanced Features
 - [ ] Ticket system for reporting users and content
-- [ ] Quote functionality
+- [ ] Quote functionality or replying to a specific post
+
+## Phase 7: Thread and Post Management
 - [ ] Thread or post editing
 - [ ] Thread or post deletion
+
+## Phase 8: User Management
 - [ ] User tags
+- [ ] User profile private or public
 
