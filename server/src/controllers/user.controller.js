@@ -1,4 +1,6 @@
 import User from '../models/User.js'
+import Post from '../models/Post.js'
+import Comment from '../models/Comment.js'
 
 export const getUser = async (req, res, next) => {
     try {
@@ -12,8 +14,35 @@ export const getUser = async (req, res, next) => {
 
 export const updateUser = async (req, res, next) => {
     try {
-        const user = await User.findByIdAndUpdate(req.user.id, req.body, { new: true }).select('-password')
+        const { bio, location, website } = req.body
+        const user = await User.findByIdAndUpdate(
+            req.user.id, 
+            { bio, location, website }, 
+            { new: true }
+        ).select('-password')
         res.json(user)
+    } catch (err) {
+        next(err)
+    }
+}
+
+export const deleteUser = async (req, res, next) => {
+    try {
+        const userId = req.user.id
+        
+        // Delete user's posts
+        await Post.deleteMany({ author: userId })
+        
+        // Delete user's comments
+        await Comment.deleteMany({ author: userId })
+        
+        // Remove user from followers/following of others
+        await User.updateMany({}, { $pull: { followers: userId, following: userId } })
+        
+        // Delete the user
+        await User.findByIdAndDelete(userId)
+        
+        res.json({ message: 'Account and associated data deleted successfully' })
     } catch (err) {
         next(err)
     }
