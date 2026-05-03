@@ -35,3 +35,5 @@
 - [ ] Quote functionality
 - [ ] Thread or post editing
 - [ ] Thread or post deletion
+- [ ] User tags
+
