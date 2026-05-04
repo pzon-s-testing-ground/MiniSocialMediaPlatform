@@ -14,7 +14,6 @@ export const loginUser = createAsyncThunk('auth/login', async (credentials, thun
 export const registerUser = createAsyncThunk('auth/register', async (userData, thunkAPI) => {
     try {
         const response = await authApi.registerApi(userData);
-        localStorage.setItem('token', response.data.token);
         return response.data;
     } catch (error) {
         return thunkAPI.rejectWithValue(error.response.data.message || 'Register failed');
@@ -63,8 +62,7 @@ const authSlice = createSlice({
             .addCase(registerUser.pending, (state) => { state.loading = true; state.error = null; })
             .addCase(registerUser.fulfilled, (state, action) => {
                 state.loading = false;
-                state.user = action.payload.user;
-                state.token = action.payload.token;
+                // No user or token set here as verification is required
             })
             .addCase(registerUser.rejected, (state, action) => {
                 state.loading = false;
