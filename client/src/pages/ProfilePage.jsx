@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getUserApi, followUserApi, uploadAvatarApi } from '../api/userApi';
+import { getUserApi, followUserApi, uploadAvatarApi, updateUserApi, deleteUserApi } from '../api/userApi';
 import { getPostsByUserApi } from '../api/postApi';
 import PostCard from '../components/PostCard';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../features/authSlice';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/cropImage';
 
@@ -13,6 +14,9 @@ const ProfilePage = () => {
     const [userPosts, setUserPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editForm, setEditForm] = useState({ bio: '', location: '', website: '' });
+    const [updatingProfile, setUpdatingProfile] = useState(false);
     
     // Crop states
     const [imageSrc, setImageSrc] = useState(null);
@@ -23,6 +27,7 @@ const ProfilePage = () => {
 
     const fileInputRef = useRef(null);
     const { user: currentUser } = useSelector(state => state.auth);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -33,6 +38,11 @@ const ProfilePage = () => {
                 ]);
                 setProfileUser(userRes.data);
                 setUserPosts(postsRes.data);
+                setEditForm({
+                    bio: userRes.data.bio || '',
+                    location: userRes.data.location || '',
+                    website: userRes.data.website || ''
+                });
                 setLoading(false);
             } catch (err) {
                 console.error(err);
@@ -90,6 +100,33 @@ const ProfilePage = () => {
         }
     };
 
+    const handleUpdateProfile = async (e) => {
+        e.preventDefault();
+        setUpdatingProfile(true);
+        try {
+            const res = await updateUserApi(editForm);
+            setProfileUser(res.data);
+            setIsEditing(false);
+        } catch (err) {
+            console.error('Profile update failed', err);
+        } finally {
+            setUpdatingProfile(false);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (window.confirm('WARNING: Are you sure you want to delete your account? This action is permanent and will delete all your posts and comments.')) {
+            try {
+                await deleteUserApi();
+                alert('Your account has been deleted.');
+                dispatch(logout());
+            } catch (err) {
+                console.error('Account deletion failed', err);
+                alert('Failed to delete account.');
+            }
+        }
+    };
+
     if (loading) return <div className="forum-loading">Loading profile...</div>;
     if (!profileUser) return <div className="forum-alert forum-alert-error">User not found</div>;
 
@@ -127,9 +164,19 @@ const ProfilePage = () => {
                             <p className="text-muted" style={{ marginBottom: '10px' }}>Rank: Member</p>
                             
                             {isSelf ? (
-                                <button className="forum-btn forum-btn-sm" onClick={() => fileInputRef.current.click()} style={{ marginBottom: 'var(--forum-gap-md)' }}>
-                                    {uploadingAvatar ? 'Uploading...' : 'Upload Avatar'}
-                                </button>
+                                <div style={{ display: 'flex', gap: '10px', marginBottom: 'var(--forum-gap-md)', flexWrap: 'wrap' }}>
+                                    <button className="forum-btn forum-btn-sm" onClick={() => fileInputRef.current.click()}>
+                                        {uploadingAvatar ? 'Uploading...' : 'Upload Avatar'}
+                                    </button>
+                                    <button className="forum-btn forum-btn-sm" onClick={() => setIsEditing(!isEditing)}>
+                                        {isEditing ? 'Cancel Edit' : 'Edit Profile'}
+                                    </button>
+                                    {!isEditing && (
+                                        <button className="forum-btn forum-btn-sm forum-btn-danger" onClick={handleDeleteAccount} style={{ backgroundColor: '#a00' }}>
+                                            Delete Account
+                                        </button>
+                                    )}
+                                </div>
                             ) : (
                                 <div style={{ display: 'flex', gap: '10px', marginBottom: 'var(--forum-gap-md)' }}>
                                     <button className="forum-btn forum-btn-sm" onClick={handleFollow}>
@@ -141,30 +188,76 @@ const ProfilePage = () => {
                                 </div>
                             )}
 
-                            <table className="forum-stats-table">
-                                <tbody>
-                                    <tr>
-                                        <th>Join Date:</th>
-                                        <td>{new Date(profileUser.createdAt).toLocaleDateString()}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Total Threads:</th>
-                                        <td>{userPosts.length}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Followers:</th>
-                                        <td>{profileUser.followers?.length || 0}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Following:</th>
-                                        <td>{profileUser.following?.length || 0}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Biography:</th>
-                                        <td>{profileUser.bio || 'No biography available.'}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            {isEditing ? (
+                                <form onSubmit={handleUpdateProfile} className="forum-edit-form">
+                                    <div className="forum-form-group">
+                                        <label>Location:</label>
+                                        <input 
+                                            type="text" 
+                                            value={editForm.location} 
+                                            onChange={(e) => setEditForm({...editForm, location: e.target.value})}
+                                            className="forum-input"
+                                            placeholder="Where are you from?"
+                                        />
+                                    </div>
+                                    <div className="forum-form-group">
+                                        <label>Website:</label>
+                                        <input 
+                                            type="text" 
+                                            value={editForm.website} 
+                                            onChange={(e) => setEditForm({...editForm, website: e.target.value})}
+                                            className="forum-input"
+                                            placeholder="https://example.com"
+                                        />
+                                    </div>
+                                    <div className="forum-form-group">
+                                        <label>Biography:</label>
+                                        <textarea 
+                                            value={editForm.bio} 
+                                            onChange={(e) => setEditForm({...editForm, bio: e.target.value})}
+                                            className="forum-input"
+                                            rows="4"
+                                            placeholder="Tell us about yourself..."
+                                        />
+                                    </div>
+                                    <button type="submit" className="forum-btn forum-btn-primary" disabled={updatingProfile}>
+                                        {updatingProfile ? 'Saving...' : 'Save Changes'}
+                                    </button>
+                                </form>
+                            ) : (
+                                <table className="forum-stats-table">
+                                    <tbody>
+                                        <tr>
+                                            <th>Join Date:</th>
+                                            <td>{new Date(profileUser.createdAt).toLocaleDateString()}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Location:</th>
+                                            <td>{profileUser.location || 'Not specified'}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Website:</th>
+                                            <td>{profileUser.website ? <a href={profileUser.website.startsWith('http') ? profileUser.website : `https://${profileUser.website}`} target="_blank" rel="noopener noreferrer">{profileUser.website}</a> : 'None'}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Total Threads:</th>
+                                            <td>{userPosts.length}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Followers:</th>
+                                            <td>{profileUser.followers?.length || 0}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Following:</th>
+                                            <td>{profileUser.following?.length || 0}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Biography:</th>
+                                            <td>{profileUser.bio || 'No biography available.'}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            )}
                         </div>
                     </div>
                 </div>

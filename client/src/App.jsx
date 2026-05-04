@@ -19,6 +19,7 @@ import ConversationPage from './pages/ConversationPage';
 import AdminPage from './pages/AdminPage';
 import SearchPage from './pages/SearchPage';
 import SupportPage from './pages/SupportPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 
 import './App.css';
 
@@ -60,6 +61,7 @@ function App() {
                     <Routes>
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegisterPage />} />
+                        <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
                         <Route path="/" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
                         <Route path="/thread/:id" element={<ProtectedRoute><ThreadPage /></ProtectedRoute>} />
                         <Route path="/profile/:id" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />

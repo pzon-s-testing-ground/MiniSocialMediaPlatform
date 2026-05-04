@@ -29,10 +29,10 @@
 - [x] Fixing all CSS bugs and Responsiveness 
 - [x] Mobile compatibility
 
-## Phase 5: Profile Management
-- [ ] Profile customization
-- [ ] Email verification before able to create an account
-- [ ] User can delete their account
+## Phase 5: Profile Management (Completed)
+- [x] Profile customization
+- [ ] Email verification before able to create an account (Need to fix the issue with email sending)
+- [x] User can delete their account
 
 ## Phase 6: Advanced Features (Completed)
 - [x] Ticket system for reporting users and content
