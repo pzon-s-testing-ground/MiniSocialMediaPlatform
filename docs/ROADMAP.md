@@ -34,9 +34,9 @@
 - [ ] Email verification before able to create an account
 - [ ] User can delete their account
 
-## Phase 6: Advanced Features
-- [ ] Ticket system for reporting users and content
-- [ ] Quote functionality or replying to a specific post
+## Phase 6: Advanced Features (Completed)
+- [x] Ticket system for reporting users and content
+- [x] Quote functionality or replying to a specific post
 
 ## Phase 7: Thread and Post Management
 - [ ] Thread or post editing

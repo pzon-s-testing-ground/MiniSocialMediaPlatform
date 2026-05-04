@@ -103,6 +103,17 @@ const ThreadPage = () => {
         }
     };
 
+    const handleQuote = (username, content) => {
+        const quoteBB = `[quote=${username}]${content}[/quote]\n`;
+        setReplyText(prev => prev + quoteBB);
+        
+        // Scroll to reply box
+        const replyBox = document.getElementById('quick-reply');
+        if (replyBox) {
+            replyBox.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
     if (loading) return <div className="forum-loading">Loading thread...</div>;
     if (error) return <div className="forum-alert forum-alert-error">{error}</div>;
     if (!post) return null;
@@ -132,7 +143,7 @@ const ThreadPage = () => {
                 </div>
 
                 {/* Original Post */}
-                <CommentBox comment={{ ...post, text: post.content }} onDelete={handleDeletePost} />
+                <CommentBox comment={{ ...post, text: post.content }} onDelete={handleDeletePost} onQuote={handleQuote} />
 
                 <div style={{ background: 'var(--forum-white)', padding: 'var(--forum-gap-md)', borderBottom: '1px solid var(--forum-border-light)', display: 'flex', justifyContent: 'flex-end' }}>
                     <button className={`forum-like-btn ${isLiked ? 'liked' : ''}`} onClick={handleLike}>
@@ -151,7 +162,7 @@ const ThreadPage = () => {
 
                 {/* Replies */}
                 {comments.map(c => (
-                    <CommentBox key={c._id} comment={c} onDelete={handleDeleteComment} />
+                    <CommentBox key={c._id} comment={c} onDelete={handleDeleteComment} onQuote={handleQuote} />
                 ))}
 
                 {/* Pagination (Bottom) */}
@@ -168,7 +179,7 @@ const ThreadPage = () => {
                         <span style={{ fontStyle: 'italic', color: 'gray' }}>This thread has been locked. You cannot reply.</span>
                     </div>
                 ) : (
-                    <div className="forum-panel-body" style={{ background: 'var(--forum-row-even)' }}>
+                    <div className="forum-panel-body" style={{ background: 'var(--forum-row-even)' }} id="quick-reply">
                         <form onSubmit={handleReply}>
                             <h3 style={{ fontSize: 'var(--forum-font-size)', borderBottom: '1px solid var(--forum-border-light)', paddingBottom: 'var(--forum-gap-sm)', marginBottom: 'var(--forum-gap-md)' }}>Quick Reply</h3>
                             <BBCodeEditor

@@ -1,9 +1,12 @@
 import { Link } from 'react-router-dom';
 import { parseBBCode } from '../utils/bbcodeParser';
 import { useSelector } from 'react-redux';
+import { useState } from 'react';
+import ReportModal from './ReportModal';
 
-const CommentBox = ({ comment, onDelete }) => {
+const CommentBox = ({ comment, onDelete, onQuote }) => {
     const { user } = useSelector(state => state.auth);
+    const [reportModalOpen, setReportModalOpen] = useState(false);
     const isMod = user && (user.role === 'Admin' || user.role === 'Moderator');
     
     return (
@@ -32,8 +35,8 @@ const CommentBox = ({ comment, onDelete }) => {
                         {isMod && !comment.isDeleted && (
                             <a href="#" onClick={(e) => { e.preventDefault(); onDelete(comment._id); }} title="Delete" style={{ textDecoration: 'none', color: 'red', fontWeight: 'bold' }}>[Delete]</a>
                         )}
-                        <a href="#" title="Quote" style={{ textDecoration: 'none', filter: 'grayscale(100%)', opacity: 0.7 }}>💬</a>
-                        <a href="#" title="Report" style={{ textDecoration: 'none', filter: 'grayscale(100%)', opacity: 0.7 }}>🚩</a>
+                        <a href="#" onClick={(e) => { e.preventDefault(); onQuote && onQuote(comment.author.username, comment.text || comment.content); }} title="Quote" style={{ textDecoration: 'none' }}>💬</a>
+                        <a href="#" onClick={(e) => { e.preventDefault(); setReportModalOpen(true); }} title="Report" style={{ textDecoration: 'none' }}>🚩</a>
                         <span>#{comment._id.substring(0, 4)}</span>
                     </span>
                 </div>
@@ -48,6 +51,13 @@ const CommentBox = ({ comment, onDelete }) => {
                         dangerouslySetInnerHTML={{ __html: parseBBCode(comment.text || comment.content) }}
                     />
                 )}
+                
+                <ReportModal 
+                    isOpen={reportModalOpen} 
+                    onClose={() => setReportModalOpen(false)} 
+                    reportedItem={comment._id} 
+                    itemType={comment.title ? 'Post' : 'Comment'} 
+                />
             </div>
         </div>
     );

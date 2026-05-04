@@ -33,7 +33,7 @@ app.use('/api/comments', commentRoutes)
 app.use('/api/notifications', notificationRoutes)
 app.use('/api/messages', messageRoutes)
 app.use('/api/admin', adminRoutes)
-app.use('/api', userActionsRoutes)
+app.use('/api/actions', userActionsRoutes)
 app.use('/api/search', searchRoutes)
 
 app.use(errorHandler)
