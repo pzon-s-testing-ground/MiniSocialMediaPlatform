@@ -37,6 +37,7 @@ const Navbar = () => {
                                 {' / '}<Link to={`/profile/${user._id || user.id}`} title="Profile">profile</Link>
                                 {' / '}<Link to="/messages" title="Messages">messages</Link>
                                 {' / '}<Link to="/notifications" title="Notifications">notifications</Link>
+                                {' / '}<Link to="/support" title="Support">support</Link>
                                 {' / '}<Link to="/search" title="Search">search</Link>
                                 {' / '}<a href="#" onClick={handleLogout} title="Logout">logout</a> ]
                             </>

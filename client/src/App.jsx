@@ -18,6 +18,7 @@ import InboxPage from './pages/InboxPage';
 import ConversationPage from './pages/ConversationPage';
 import AdminPage from './pages/AdminPage';
 import SearchPage from './pages/SearchPage';
+import SupportPage from './pages/SupportPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 
 import './App.css';
@@ -69,6 +70,7 @@ function App() {
                         <Route path="/messages/:userId" element={<ProtectedRoute><ConversationPage /></ProtectedRoute>} />
                         <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
                         <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+                        <Route path="/support" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
                     </Routes>
                 </div>
                 <Footer />
