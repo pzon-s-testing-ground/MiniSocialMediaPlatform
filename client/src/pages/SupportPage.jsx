@@ -8,10 +8,6 @@ const SupportPage = () => {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
-    useEffect(() => {
-        fetchMyTickets();
-    }, []);
-
     const fetchMyTickets = async () => {
         try {
             const res = await getMyTicketsApi();
@@ -22,6 +18,12 @@ const SupportPage = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchMyTickets();
+    }, []);
+
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
