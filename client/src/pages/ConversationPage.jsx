@@ -11,6 +11,12 @@ const ConversationPage = () => {
     const { user } = useSelector(state => state.auth);
     const messagesEndRef = useRef(null);
 
+    const scrollToBottom = () => {
+        setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+    };
+
     useEffect(() => {
         const fetchMessages = async () => {
             try {
@@ -38,11 +44,7 @@ const ConversationPage = () => {
         };
     }, [userId]);
 
-    const scrollToBottom = () => {
-        setTimeout(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        }, 100);
-    };
+
 
     const handleSend = async (e) => {
         e.preventDefault();
