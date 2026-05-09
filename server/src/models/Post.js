@@ -10,7 +10,8 @@ const postSchema = new mongoose.Schema({
     isLocked:{ type: Boolean, default: false },
     isPinned:{ type: Boolean, default: false },
     isDeleted:{ type: Boolean, default: false },
-    deletedBy:{ type: String, enum: ['author', 'admin', null], default: null }
+    deletedBy:{ type: String, enum: ['author', 'admin', null], default: null },
+    editedAt:{ type: Date, default: null }
 }, { timestamps: true })
 
 export default mongoose.model('Post', postSchema)

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getPostByIdApi, likePostApi, lockPostApi, pinPostApi, deletePostApi } from '../api/postApi';
-import { getCommentsApi, createCommentApi, deleteCommentApi } from '../api/commentApi';
+import { getPostByIdApi, likePostApi, lockPostApi, pinPostApi, deletePostApi, updatePostApi } from '../api/postApi';
+import { getCommentsApi, createCommentApi, deleteCommentApi, updateCommentApi } from '../api/commentApi';
 import CommentBox from '../components/CommentBox';
 import BBCodeEditor from '../components/BBCodeEditor';
 import { useSelector } from 'react-redux';
@@ -103,6 +103,24 @@ const ThreadPage = () => {
         }
     };
 
+    const handleEditPost = async (postId, newText, newTitle) => {
+        try {
+            const res = await updatePostApi(postId, newTitle, newText);
+            setPost({ ...post, content: res.data.content, title: res.data.title, editedAt: res.data.editedAt });
+        } catch (err) {
+            alert('Error editing post');
+        }
+    };
+
+    const handleEditComment = async (commentId, newText) => {
+        try {
+            const res = await updateCommentApi(commentId, newText);
+            setComments(comments.map(c => c._id === commentId ? { ...c, text: res.data.text, editedAt: res.data.editedAt } : c));
+        } catch (err) {
+            alert('Error editing comment');
+        }
+    };
+
     const handleQuote = (username, content) => {
         const quoteBB = `[quote=${username}]${content}[/quote]\n`;
         setReplyText(prev => prev + quoteBB);
@@ -143,7 +161,7 @@ const ThreadPage = () => {
                 </div>
 
                 {/* Original Post */}
-                <CommentBox comment={{ ...post, text: post.content }} onDelete={handleDeletePost} onQuote={handleQuote} />
+                <CommentBox comment={{ ...post, text: post.content }} onDelete={handleDeletePost} onQuote={handleQuote} onEdit={handleEditPost} />
 
                 <div style={{ background: 'var(--forum-white)', padding: 'var(--forum-gap-md)', borderBottom: '1px solid var(--forum-border-light)', display: 'flex', justifyContent: 'flex-end' }}>
                     <button className={`forum-like-btn ${isLiked ? 'liked' : ''}`} onClick={handleLike}>
@@ -162,7 +180,7 @@ const ThreadPage = () => {
 
                 {/* Replies */}
                 {comments.map(c => (
-                    <CommentBox key={c._id} comment={c} onDelete={handleDeleteComment} onQuote={handleQuote} />
+                    <CommentBox key={c._id} comment={c} onDelete={handleDeleteComment} onQuote={handleQuote} onEdit={handleEditComment} />
                 ))}
 
                 {/* Pagination (Bottom) */}

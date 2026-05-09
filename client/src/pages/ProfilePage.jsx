@@ -41,7 +41,8 @@ const ProfilePage = () => {
                 setEditForm({
                     bio: userRes.data.bio || '',
                     location: userRes.data.location || '',
-                    website: userRes.data.website || ''
+                    website: userRes.data.website || '',
+                    isPrivate: userRes.data.isPrivate || false
                 });
                 setLoading(false);
             } catch (err) {
@@ -220,6 +221,15 @@ const ProfilePage = () => {
                                             placeholder="Tell us about yourself..."
                                         />
                                     </div>
+                                    <div className="forum-form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <input 
+                                            type="checkbox" 
+                                            id="isPrivate"
+                                            checked={editForm.isPrivate}
+                                            onChange={(e) => setEditForm({...editForm, isPrivate: e.target.checked})}
+                                        />
+                                        <label htmlFor="isPrivate" style={{ margin: 0 }}>Private Profile (Only followers can see your details and threads)</label>
+                                    </div>
                                     <button type="submit" className="forum-btn forum-btn-primary" disabled={updatingProfile}>
                                         {updatingProfile ? 'Saving...' : 'Save Changes'}
                                     </button>
@@ -253,7 +263,7 @@ const ProfilePage = () => {
                                         </tr>
                                         <tr>
                                             <th>Biography:</th>
-                                            <td>{profileUser.bio || 'No biography available.'}</td>
+                                            <td>{profileUser.isPrivate && !isSelf ? <i style={{ color: 'gray' }}>Hidden (Private Profile)</i> : (profileUser.bio || 'No biography available.')}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -268,7 +278,9 @@ const ProfilePage = () => {
                     Threads by {profileUser.username}
                 </div>
                 <div>
-                    {userPosts.length === 0 ? (
+                    {profileUser.isPrivate && !isSelf && !(currentUser && profileUser.followers?.includes(currentUser._id || currentUser.id)) && !(currentUser && (currentUser.role === 'Admin' || currentUser.role === 'Moderator')) ? (
+                        <div style={{ padding: 'var(--forum-gap-lg)', textAlign: 'center', color: 'gray' }}>This profile is private. You must follow this user to view their threads.</div>
+                    ) : userPosts.length === 0 ? (
                         <div style={{ padding: 'var(--forum-gap-lg)', textAlign: 'center' }}>This user has not created any threads yet.</div>
                     ) : (
                         userPosts.map(post => (

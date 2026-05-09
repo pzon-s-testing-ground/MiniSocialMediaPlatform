@@ -6,6 +6,27 @@ export const getUser = async (req, res, next) => {
     try {
         const user = await User.findById(req.params.id).select('-password')
         if (!user) return res.status(404).json({ message: 'User not found' })
+
+        if (user.isPrivate) {
+            const isSelf = req.user.id === user._id.toString();
+            const isMod = req.user.role === 'Admin' || req.user.role === 'Moderator';
+            const isFollower = user.followers.includes(req.user.id);
+            if (!isSelf && !isMod && !isFollower) {
+                // Return restricted profile
+                return res.json({
+                    _id: user._id,
+                    username: user.username,
+                    avatar: user.avatar,
+                    createdAt: user.createdAt,
+                    role: user.role,
+                    isPrivate: true,
+                    followers: user.followers,
+                    following: user.following,
+                    // omit bio, location, website
+                });
+            }
+        }
+
         res.json(user)
     } catch (err) {
         next(err)
@@ -14,10 +35,10 @@ export const getUser = async (req, res, next) => {
 
 export const updateUser = async (req, res, next) => {
     try {
-        const { bio, location, website } = req.body
+        const { bio, location, website, isPrivate } = req.body
         const user = await User.findByIdAndUpdate(
             req.user.id, 
-            { bio, location, website }, 
+            { bio, location, website, isPrivate }, 
             { new: true }
         ).select('-password')
         res.json(user)

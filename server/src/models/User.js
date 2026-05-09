@@ -12,13 +12,11 @@ const userSchema = new mongoose.Schema({
     isBanned:   { type: Boolean, default: false },
     location:  { type: String, default: '' },
     website:   { type: String, default: '' },
-    isVerified: { type: Boolean, default: false },
-    verificationToken: { type: String },
-    verificationTokenExpires: { type: Date },
     isShadowbanned: { type: Boolean, default: false },
     lastLogin:  { type: Date },
     banReason:  { type: String, default: '' },
-    warnings:   [{ reason: String, date: { type: Date, default: Date.now } }]
+    warnings:   [{ reason: String, date: { type: Date, default: Date.now } }],
+    isPrivate:  { type: Boolean, default: false }
 }, { timestamps: true })
 
 export default mongoose.model('User', userSchema)

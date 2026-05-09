@@ -62,7 +62,7 @@ const authSlice = createSlice({
             .addCase(registerUser.pending, (state) => { state.loading = true; state.error = null; })
             .addCase(registerUser.fulfilled, (state, action) => {
                 state.loading = false;
-                // No user or token set here as verification is required
+                // Registration successful, user can now log in
             })
             .addCase(registerUser.rejected, (state, action) => {
                 state.loading = false;

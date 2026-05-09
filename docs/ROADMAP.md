@@ -31,18 +31,17 @@
 
 ## Phase 5: Profile Management (Completed)
 - [x] Profile customization
-- [ ] Email verification before able to create an account (Need to fix the issue with email sending)
 - [x] User can delete their account
 
 ## Phase 6: Advanced Features (Completed)
 - [x] Ticket system for reporting users and content
 - [x] Quote functionality or replying to a specific post
 
-## Phase 7: Thread and Post Management
-- [ ] Thread or post editing
-- [ ] Thread or post deletion
+## Phase 7: Thread and Post Management (Completed)
+- [x] Thread or post editing
+- [x] Thread or post deletion
 
-## Phase 8: User Management
-- [ ] User tags
-- [ ] User profile private or public
+## Phase 8: User Management (Completed)
+- [x] User tags
+- [x] User profile private or public
 

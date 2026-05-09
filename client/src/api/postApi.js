@@ -10,3 +10,4 @@ export const deletePostApi = (id) => axios.delete(`/posts/${id}`);
 export const likePostApi = (id) => axios.put(`/posts/${id}/like`);
 export const lockPostApi = (id) => axios.put(`/posts/${id}/lock`);
 export const pinPostApi = (id) => axios.put(`/posts/${id}/pin`);
+export const updatePostApi = (id, title, content) => axios.put(`/posts/${id}`, { title, content });
