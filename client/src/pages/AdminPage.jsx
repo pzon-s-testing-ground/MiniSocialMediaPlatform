@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
@@ -31,31 +31,36 @@ const AdminPage = () => {
     const [tickets, setTickets] = useState([]);
     const [ticketReply, setTicketReply] = useState({});
 
+    const fetchUsers = useCallback(async () => {
+        try { const res = await getUsersApi(searchQuery); setUsers(res.data); } catch (e) { console.error(e); }
+    }, [searchQuery]);
+
+    const fetchReports = useCallback(async () => {
+        try { const res = await getReportsApi(); setReports(res.data); } catch (e) { console.error(e); }
+    }, []);
+
+    const fetchAuditLogs = useCallback(async () => {
+        try { const res = await getAuditLogsApi(); setAuditLogs(res.data); } catch (e) { console.error(e); }
+    }, []);
+
+    const fetchSettings = useCallback(async () => {
+        try { const res = await getSettingsApi(); setBannedWords(res.data.banned_words || ''); } catch (e) { console.error(e); }
+    }, []);
+
+    const fetchAnalytics = useCallback(async () => {
+        try { const res = await getAnalyticsApi(); setAnalytics(res.data); } catch (e) { console.error(e); }
+    }, []);
+
+    const fetchTickets = useCallback(async () => {
+        try { const res = await getTicketsApi(); setTickets(res.data); } catch (e) { console.error(e); }
+    }, []);
+
     useEffect(() => {
         if (activeTab === 'users') fetchUsers();
         if (activeTab === 'moderation') { fetchReports(); fetchAuditLogs(); fetchSettings(); }
         if (activeTab === 'analytics') fetchAnalytics();
         if (activeTab === 'comms') fetchTickets();
-    }, [activeTab]);
-
-    const fetchUsers = async () => {
-        try { const res = await getUsersApi(searchQuery); setUsers(res.data); } catch (e) { console.error(e); }
-    };
-    const fetchReports = async () => {
-        try { const res = await getReportsApi(); setReports(res.data); } catch (e) { console.error(e); }
-    };
-    const fetchAuditLogs = async () => {
-        try { const res = await getAuditLogsApi(); setAuditLogs(res.data); } catch (e) { console.error(e); }
-    };
-    const fetchSettings = async () => {
-        try { const res = await getSettingsApi(); setBannedWords(res.data.banned_words || ''); } catch (e) { console.error(e); }
-    };
-    const fetchAnalytics = async () => {
-        try { const res = await getAnalyticsApi(); setAnalytics(res.data); } catch (e) { console.error(e); }
-    };
-    const fetchTickets = async () => {
-        try { const res = await getTicketsApi(); setTickets(res.data); } catch (e) { console.error(e); }
-    };
+    }, [activeTab, fetchUsers, fetchReports, fetchAuditLogs, fetchSettings, fetchAnalytics, fetchTickets]);
 
     if (currentUser?.role !== 'Admin' && currentUser?.role !== 'Moderator') {
         return <div className="forum-alert forum-alert-error">Access Denied.</div>;

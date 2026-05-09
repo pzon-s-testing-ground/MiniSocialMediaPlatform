@@ -31,7 +31,7 @@ const ThreadPage = () => {
                 setComments(commentsRes.data.comments);
                 setTotalPages(commentsRes.data.totalPages);
                 setLoading(false);
-            } catch (err) {
+            } catch {
                 setError('Thread not found or error loading.');
                 setLoading(false);
             }
@@ -50,7 +50,7 @@ const ThreadPage = () => {
             const commentsRes = await getCommentsApi(id, page, 20);
             setComments(commentsRes.data.comments);
             setTotalPages(commentsRes.data.totalPages);
-        } catch (err) {
+        } catch {
             alert('Error posting reply');
         }
     };
@@ -59,8 +59,8 @@ const ThreadPage = () => {
         try {
             const res = await likePostApi(id);
             setPost({ ...post, likes: res.data.likes });
-        } catch (err) {
-            console.error(err);
+        } catch {
+            console.error('Error liking post');
         }
     };
 
@@ -69,7 +69,7 @@ const ThreadPage = () => {
         try {
             await deletePostApi(id);
             setPost({ ...post, isDeleted: true, deletedBy: (user.role === 'Admin' || user.role === 'Moderator') ? 'admin' : 'author' });
-        } catch (err) {
+        } catch {
             alert('Error deleting post');
         }
     };
@@ -78,7 +78,7 @@ const ThreadPage = () => {
         try {
             const res = await lockPostApi(id);
             setPost({ ...post, isLocked: res.data.isLocked });
-        } catch (err) {
+        } catch {
             alert('Error locking post');
         }
     };
@@ -87,7 +87,7 @@ const ThreadPage = () => {
         try {
             const res = await pinPostApi(id);
             setPost({ ...post, isPinned: res.data.isPinned });
-        } catch (err) {
+        } catch {
             alert('Error pinning post');
         }
     };
@@ -98,7 +98,7 @@ const ThreadPage = () => {
             await deleteCommentApi(commentId);
             const commentsRes = await getCommentsApi(id, page, 20);
             setComments(commentsRes.data.comments);
-        } catch (err) {
+        } catch {
             alert('Error deleting comment');
         }
     };
@@ -107,7 +107,7 @@ const ThreadPage = () => {
         try {
             const res = await updatePostApi(postId, newTitle, newText);
             setPost({ ...post, content: res.data.content, title: res.data.title, editedAt: res.data.editedAt });
-        } catch (err) {
+        } catch {
             alert('Error editing post');
         }
     };
@@ -116,7 +116,7 @@ const ThreadPage = () => {
         try {
             const res = await updateCommentApi(commentId, newText);
             setComments(comments.map(c => c._id === commentId ? { ...c, text: res.data.text, editedAt: res.data.editedAt } : c));
-        } catch (err) {
+        } catch {
             alert('Error editing comment');
         }
     };

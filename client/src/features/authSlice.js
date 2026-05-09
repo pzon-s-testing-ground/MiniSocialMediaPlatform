@@ -60,7 +60,7 @@ const authSlice = createSlice({
                 state.error = action.payload;
             })
             .addCase(registerUser.pending, (state) => { state.loading = true; state.error = null; })
-            .addCase(registerUser.fulfilled, (state, action) => {
+            .addCase(registerUser.fulfilled, (state) => {
                 state.loading = false;
                 // Registration successful, user can now log in
             })
@@ -73,7 +73,7 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.user = action.payload;
             })
-            .addCase(getMe.rejected, (state, action) => {
+            .addCase(getMe.rejected, (state) => {
                 state.loading = false;
                 state.token = null;
                 localStorage.removeItem('token');
