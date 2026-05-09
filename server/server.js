@@ -15,6 +15,7 @@ import adminRoutes from './src/routes/admin.routes.js'
 import userActionsRoutes from './src/routes/user.actions.routes.js'
 import searchRoutes from './src/routes/search.routes.js'
 import errorHandler from './src/middlewares/errorHandler.js'
+import { apiLimiter, authLimiter } from './src/middlewares/rateLimiter.js'
 
 const app = express()
 const server = http.createServer(app)
@@ -25,6 +26,9 @@ initSocket(server)
 app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'], credentials: true }))
 app.use(express.json())
 app.use('/uploads', express.static('uploads'))
+
+app.use('/api', apiLimiter)
+app.use('/api/auth', authLimiter)
 
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
