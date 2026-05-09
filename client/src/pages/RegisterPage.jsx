@@ -54,7 +54,7 @@ const RegisterPage = () => {
                     <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: '600px' }}>
                         {isSuccess ? (
                             <div className="forum-alert forum-alert-success mb-md">
-                                Registration successful! Please check your email to verify your account before logging in.
+                                Registration successful! You can now log in.
                             </div>
                         ) : (error || validationError) && (
                             <div className="forum-alert forum-alert-error mb-md">

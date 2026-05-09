@@ -19,6 +19,8 @@ export const parseBBCode = (text) => {
         // Quote
         .replace(/\[quote=(.*?)\]([\s\S]*?)\[\/quote\]/gi, '<blockquote style="border: 1px solid var(--forum-border-light); background: var(--forum-row-odd); padding: 5px 10px; margin: 10px 0; font-style: italic;"><div style="font-weight: bold; border-bottom: 1px solid var(--forum-border-light); margin-bottom: 5px; font-size: 0.9em;">$1 wrote:</div>$2</blockquote>')
         .replace(/\[quote\]([\s\S]*?)\[\/quote\]/gi, '<blockquote style="border: 1px solid var(--forum-border-light); background: var(--forum-row-odd); padding: 5px 10px; margin: 10px 0; font-style: italic;">$1</blockquote>')
+        // User Tag
+        .replace(/\[user=([a-zA-Z0-9]+)\](.*?)\[\/user\]/gi, '<a href="/profile/$1" style="color: var(--forum-primary); font-weight: bold; text-decoration: none;">@$2</a>')
         // Newlines to <br>
         .replace(/\n/g, '<br />');
 

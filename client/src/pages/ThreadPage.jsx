@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getPostByIdApi, likePostApi, lockPostApi, pinPostApi, deletePostApi } from '../api/postApi';
-import { getCommentsApi, createCommentApi, deleteCommentApi } from '../api/commentApi';
+import { getPostByIdApi, likePostApi, lockPostApi, pinPostApi, deletePostApi, updatePostApi } from '../api/postApi';
+import { getCommentsApi, createCommentApi, deleteCommentApi, updateCommentApi } from '../api/commentApi';
 import CommentBox from '../components/CommentBox';
 import BBCodeEditor from '../components/BBCodeEditor';
 import { useSelector } from 'react-redux';
@@ -31,7 +31,7 @@ const ThreadPage = () => {
                 setComments(commentsRes.data.comments);
                 setTotalPages(commentsRes.data.totalPages);
                 setLoading(false);
-            } catch (err) {
+            } catch {
                 setError('Thread not found or error loading.');
                 setLoading(false);
             }
@@ -50,7 +50,7 @@ const ThreadPage = () => {
             const commentsRes = await getCommentsApi(id, page, 20);
             setComments(commentsRes.data.comments);
             setTotalPages(commentsRes.data.totalPages);
-        } catch (err) {
+        } catch {
             alert('Error posting reply');
         }
     };
@@ -59,8 +59,8 @@ const ThreadPage = () => {
         try {
             const res = await likePostApi(id);
             setPost({ ...post, likes: res.data.likes });
-        } catch (err) {
-            console.error(err);
+        } catch {
+            console.error('Error liking post');
         }
     };
 
@@ -69,7 +69,7 @@ const ThreadPage = () => {
         try {
             await deletePostApi(id);
             setPost({ ...post, isDeleted: true, deletedBy: (user.role === 'Admin' || user.role === 'Moderator') ? 'admin' : 'author' });
-        } catch (err) {
+        } catch {
             alert('Error deleting post');
         }
     };
@@ -78,7 +78,7 @@ const ThreadPage = () => {
         try {
             const res = await lockPostApi(id);
             setPost({ ...post, isLocked: res.data.isLocked });
-        } catch (err) {
+        } catch {
             alert('Error locking post');
         }
     };
@@ -87,7 +87,7 @@ const ThreadPage = () => {
         try {
             const res = await pinPostApi(id);
             setPost({ ...post, isPinned: res.data.isPinned });
-        } catch (err) {
+        } catch {
             alert('Error pinning post');
         }
     };
@@ -98,8 +98,26 @@ const ThreadPage = () => {
             await deleteCommentApi(commentId);
             const commentsRes = await getCommentsApi(id, page, 20);
             setComments(commentsRes.data.comments);
-        } catch (err) {
+        } catch {
             alert('Error deleting comment');
+        }
+    };
+
+    const handleEditPost = async (postId, newText, newTitle) => {
+        try {
+            const res = await updatePostApi(postId, newTitle, newText);
+            setPost({ ...post, content: res.data.content, title: res.data.title, editedAt: res.data.editedAt });
+        } catch {
+            alert('Error editing post');
+        }
+    };
+
+    const handleEditComment = async (commentId, newText) => {
+        try {
+            const res = await updateCommentApi(commentId, newText);
+            setComments(comments.map(c => c._id === commentId ? { ...c, text: res.data.text, editedAt: res.data.editedAt } : c));
+        } catch {
+            alert('Error editing comment');
         }
     };
 
@@ -143,7 +161,7 @@ const ThreadPage = () => {
                 </div>
 
                 {/* Original Post */}
-                <CommentBox comment={{ ...post, text: post.content }} onDelete={handleDeletePost} onQuote={handleQuote} />
+                <CommentBox comment={{ ...post, text: post.content }} onDelete={handleDeletePost} onQuote={handleQuote} onEdit={handleEditPost} />
 
                 <div style={{ background: 'var(--forum-white)', padding: 'var(--forum-gap-md)', borderBottom: '1px solid var(--forum-border-light)', display: 'flex', justifyContent: 'flex-end' }}>
                     <button className={`forum-like-btn ${isLiked ? 'liked' : ''}`} onClick={handleLike}>
@@ -162,7 +180,7 @@ const ThreadPage = () => {
 
                 {/* Replies */}
                 {comments.map(c => (
-                    <CommentBox key={c._id} comment={c} onDelete={handleDeleteComment} onQuote={handleQuote} />
+                    <CommentBox key={c._id} comment={c} onDelete={handleDeleteComment} onQuote={handleQuote} onEdit={handleEditComment} />
                 ))}
 
                 {/* Pagination (Bottom) */}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { searchApi } from '../api/searchApi';
 import PostCard from '../components/PostCard';
@@ -20,7 +20,7 @@ const SearchPage = () => {
     const [totalPostPages, setTotalPostPages] = useState(0);
     const [totalUserPages, setTotalUserPages] = useState(0);
 
-    const performSearch = async (q, type, pPage, uPage) => {
+    const performSearch = useCallback(async (q, type, pPage, uPage) => {
         if (!q.trim()) return;
         setLoading(true);
         try {
@@ -30,24 +30,24 @@ const SearchPage = () => {
             setTotalPostPages(res.data.totalPostPages || 0);
             setTotalUserPages(res.data.totalUserPages || 0);
             setSearched(true);
-        } catch (err) {
-            console.error(err);
+        } catch {
+            console.error('Search failed');
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         if (initialQuery) {
             performSearch(initialQuery, activeType, postPage, userPage);
         }
-    }, []);
+    }, [initialQuery, activeType, postPage, userPage, performSearch]);
 
     useEffect(() => {
         if (searched && query.trim()) {
             performSearch(query, activeType, postPage, userPage);
         }
-    }, [postPage, userPage, activeType]);
+    }, [postPage, userPage, activeType, query, searched, performSearch]);
 
     const handleSearch = (e) => {
         e.preventDefault();

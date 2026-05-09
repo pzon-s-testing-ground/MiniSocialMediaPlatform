@@ -35,7 +35,7 @@ const SupportPage = () => {
             setMessage('');
             fetchMyTickets();
             alert('Ticket submitted successfully!');
-        } catch (err) {
+        } catch {
             alert('Error submitting ticket.');
         } finally {
             setSubmitting(false);

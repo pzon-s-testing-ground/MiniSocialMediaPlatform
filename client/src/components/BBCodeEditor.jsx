@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 
 const BBCodeEditor = ({ value, onChange, placeholder, rows = 5 }) => {
     const textareaRef = useRef(null);

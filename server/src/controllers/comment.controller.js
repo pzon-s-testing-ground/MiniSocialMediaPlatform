@@ -2,6 +2,7 @@ import Comment from '../models/Comment.js'
 import Post from '../models/Post.js'
 import Notification from '../models/Notification.js'
 import { getIo, getSocketId } from '../config/socket.js'
+import { parseTagsAndNotify } from '../utils/tagParser.js'
 
 export const getComments = async (req, res, next) => {
     try {
@@ -30,11 +31,13 @@ export const getComments = async (req, res, next) => {
 
 export const createComment = async (req, res, next) => {
     try {
-        const comment = await Comment.create({
-            text: req.body.text,
+        const parsedText = await parseTagsAndNotify(req.body.text, req.user.id, req.params.postId);
+
+        let comment = await Comment.create({
+            text: parsedText,
             post: req.params.postId,
             author: req.user.id,
-        })
+        });
 
         // Find post to get the author
         const post = await Post.findById(req.params.postId);
@@ -55,6 +58,27 @@ export const createComment = async (req, res, next) => {
 
         const populatedComment = await comment.populate('author', 'username avatar createdAt');
         res.status(201).json(populatedComment)
+    } catch (err) {
+        next(err)
+    }
+}
+
+export const updateComment = async (req, res, next) => {
+    try {
+        const comment = await Comment.findById(req.params.id)
+        if (!comment) return res.status(404).json({ message: 'Comment not found' })
+
+        if (comment.author.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Unauthorized. Only the author can edit this comment.' })
+        }
+
+        const finalContent = await parseTagsAndNotify(req.body.text || comment.text, req.user.id, comment.post);
+
+        comment.text = finalContent;
+        comment.editedAt = new Date();
+        await comment.save();
+
+        res.json(comment);
     } catch (err) {
         next(err)
     }

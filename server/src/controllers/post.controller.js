@@ -3,6 +3,7 @@ import Notification from '../models/Notification.js'
 import SystemSetting from '../models/SystemSetting.js'
 import User from '../models/User.js'
 import { getIo, getSocketId } from '../config/socket.js'
+import { parseTagsAndNotify } from '../utils/tagParser.js'
 
 export const getPosts = async (req, res, next) => {
     try {
@@ -60,6 +61,18 @@ export const getPostById = async (req, res, next) => {
 
 export const getPostsByUser = async (req, res, next) => {
     try {
+        const targetUser = await User.findById(req.params.userId);
+        if (!targetUser) return res.status(404).json({ message: 'User not found' });
+
+        if (targetUser.isPrivate) {
+            const isSelf = req.user.id === targetUser._id.toString();
+            const isMod = req.user.role === 'Admin' || req.user.role === 'Moderator';
+            const isFollower = targetUser.followers.includes(req.user.id);
+            if (!isSelf && !isMod && !isFollower) {
+                return res.json([]); // Return empty posts if private and unauthorized
+            }
+        }
+
         const posts = await Post.find({ author: req.params.userId }).populate('author', 'username avatar').sort({ createdAt: -1 })
         res.json(posts)
     } catch (err) {
@@ -81,14 +94,61 @@ export const createPost = async (req, res, next) => {
             }
         }
 
-        const post = await Post.create({
+        const parsedContent = await parseTagsAndNotify(req.body.content, req.user._id, null); // Will need post._id for notification though...
+        
+        let post = await Post.create({
             title: req.body.title || 'Untitled',
             category: req.body.category || 'General',
-            content: req.body.content,
+            content: parsedContent,
             image: req.file ? `/uploads/${req.file.filename}` : '',
             author: req.user._id,
-        })
+        });
+
+        // If we want the post ID in notifications, we might have to run parseTagsAndNotify AFTER creation, 
+        // but it modifies content. Let's re-run it or pass post id.
+        // Better: create post, then parse tags and update content.
+        
+        const finalContent = await parseTagsAndNotify(req.body.content, req.user._id, post._id);
+        if (finalContent !== req.body.content) {
+            post.content = finalContent;
+            await post.save();
+        }
+
         res.status(201).json(post)
+    } catch (err) {
+        next(err)
+    }
+}
+
+export const updatePost = async (req, res, next) => {
+    try {
+        const post = await Post.findById(req.params.id)
+        if (!post) return res.status(404).json({ message: 'Post not found' })
+
+        if (post.author.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Unauthorized. Only the author can edit this post.' })
+        }
+        
+        // Keyword filtering
+        const bannedWordsSetting = await SystemSetting.findOne({ key: 'banned_words' });
+        if (bannedWordsSetting && bannedWordsSetting.value) {
+            const bannedWords = bannedWordsSetting.value.split(',').map(w => w.trim().toLowerCase()).filter(Boolean);
+            const contentLower = (req.body.content || '').toLowerCase();
+            const titleLower = (req.body.title || '').toLowerCase();
+            const found = bannedWords.find(w => contentLower.includes(w) || titleLower.includes(w));
+            if (found) {
+                return res.status(400).json({ message: `Your post contains a banned word: "${found}"` });
+            }
+        }
+
+        const finalContent = await parseTagsAndNotify(req.body.content || post.content, req.user._id, post._id);
+
+        post.title = req.body.title || post.title;
+        post.content = finalContent;
+        post.editedAt = new Date();
+        await post.save();
+
+        res.json(post);
     } catch (err) {
         next(err)
     }
