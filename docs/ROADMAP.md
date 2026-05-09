@@ -45,3 +45,7 @@
 - [x] User tags
 - [x] User profile private or public
 
+## Phase 9: Security (Completed)
+- [x] Rate limiting across all API endpoints
+- [x] Strict rate limiting for authentication routes
+
